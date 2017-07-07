@@ -1,0 +1,81 @@
+Android中的内存泄漏和内存溢出有什么区别？
+
+内存溢出是指程序在申请内存的时候，没有足够的内存可以分配，导致Out Of Memory错误，也就是OOM。
+
+内存泄漏：对象都有生命周期的，在生命周期完成之后，就该被垃圾回收和释放，如果得不到及时的释放，就会一直占用内存，造成内存泄漏。随着内存泄漏的堆积，
+可用的内存空间越来越少，最后会导致内存溢出。
+导致内存泄漏有很多原因，最常见的有内部类的使用，因为内部类持有外部引用。还有就是对Activity Context的使用，如果没有特别的要求，尽量使用Application
+context. 避免其他地方持有Activity而得不到释放，如果必须要用Activity Context,可以用弱引用。
+
+Android中的显式Intent 和 隐式Intent 有什么区别？
+显式Intent：即直接指定需要打开的Activity类，可以唯一确定一个Activity，意图特别明确，所以是显式的。设置这个类的方式可以是Class对象
+（如SecondActivity.class），也可以是包名加类名的字符串。应用程序内部Activity跳转常用这个方式。
+隐式Intent:，隐式不明确指定启动哪个Activity，而是设置Action、Data、Category，让系统来筛选出合适的Activity。筛选是根据所有的
+来筛选。
+详细介绍请看文章：Android理解：显式和隐式Intent
+Activity有几种启动模式？有什么区别？
+Activity启动有4种模式，区别如下：
+standard:Activity的每一次启动都会新建一个Activity实例，并将其压入任务栈的栈顶，而不管这个Activity是否存在，并且会走生命周期
+singleTop:栈顶复用模式，这种模式下，如果Activity已经位于任务栈的栈顶，那么此Activity不会被重新创建，所以他的启动三回调就不会执行
+，同时Activity的onNewIntent 方法会被回调，如果Activity已经存在但是不在栈顶，那么它的作用和standard一样。
+singleTask:系统创建新任务并实例化位于新任务底部的 Activity。但是，如果该 Activity 的一个实例已存在于一个单独的任务中，
+则系统会通过调用现有实例的 onNewIntent() 方法向其传送 Intent，而不是创建新实例。一次只能存在 Activity 的一个实例。
+singleInstance:单独创建一个新的任务栈。
+
+在Activity中如何保存/恢复状态？
+分别调用onSaveInstanceState和onRestoreInstanceState 2个方法保存和恢复状态。
+
+有使用过AsyncTask吗？
+很少使用AsyncTask了，异步基本用RxJava 来做。
+
+Android 中序列化有哪些方式？区别？
+Serializable（Java自带）：
+Serializable是序列化的意思，表示将一个对象转换成可存储或可传输的状态。序列化后的对象可以在网络上进行传输，也可以存储到本地。
+Parcelable（android 专用）：
+除了Serializable之外，使用Parcelable也可以实现相同的效果，
+不过不同于将对象进行序列化，Parcelable方式的实现原理是将一个完整的对象进行分解，
+而分解后的每一部分都是Intent所支持的数据类型，这样也就实现传递对象的功能了。
+区别：Parcelable比Serializable性能高，所以应用内传递数据推荐使用Parcelable,但是Parcelable不能使用在要将数据存储在磁盘上的情况
+，因为Parcelable不能很好的保证数据的持续性在外界有变化的情况下。尽管Serializable效率低点，但此时还是建议使用Serializable 。
+详细介绍请看文章：序列化Serializable和Parcelable的理解和区别
+用过哪些图片加载框架？看过源码吗？简述一下流程。
+Universal-Image-Loader,Picasso,Glide。这个可以自由发挥，根据自己的实际情况讲解，如果自己有看过源码之类的，尽量多讲。
+图片加载框架－Picasso最详细的使用指南
+图片加载框架Picasso － 源码分析
+Android Universal Image Loader 源码分析
+
+RxJava 中  flatMap 和 concatMap 有什么区别？
+concatMap和flatMap的功能是一样的， 将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据放进一个单独的Observable。
+只不过最后合并Observables flatMap采用的merge，而concatMap采用的是连接(concat)。总之一句一话,他们的区别在于：concatMap是有序的，
+flatMap是无序的，concatMap最终输出的顺序与原序列保持一致，而flatMap则不一定，有可能出现交错。
+详情请看文章：RxJava 操作符flatMap 与 concatMap详解
+
+MVP 架构的优缺点？
+MVP优点：
+1，Model与View完全分离，彻底解耦
+2，Presenter复用，可以将一个Presenter用于多个视图，而不用改变Presenter的逻辑
+3，可以实现View接口进行逻辑测试（Presenter的单元测试）
+MVP的缺点及优化：
+1，View层过大，Activity复杂，加入模板方法，分离出BaseActivity用于处理公共逻辑
+2，Model层过大，做好模块划分，进行接口隔离，在内部进行分层。
+3，还有一个问题是，MVP额外的增加了很多类和接口,这个可以根据项目实际情况进行相应地优化
+
+OkHttp 的addInterceptor 和 addNetworkInterceptor 的区别？
+addInterceptor（应用拦截器）：
+1，不需要担心中间过程的响应,如重定向和重试.
+2，总是只调用一次,即使HTTP响应是从缓存中获取.
+3，观察应用程序的初衷. 不关心OkHttp注入的头信息如: If-None-Match.
+4，允许短路而不调用 Chain.proceed(),即中止调用.
+5，允许重试,使 Chain.proceed()调用多次.
+addNetworkInterceptor（网络拦截器）：
+1，能够操作中间过程的响应,如重定向和重试.
+2，当网络短路而返回缓存响应时不被调用.
+3，只观察在网络上传输的数据.
+4，携带请求来访问连接.
+详情请看：Okhttp-wiki 之 Interceptors 拦截器
+
+如何获取程序的崩溃日志？
+
+java层crash log收集：
+通过实现系统的UncaughtExceptionHandler类，并重写uncaughtException方法，在uncaughtException方法中会获取到错误的日志，可以将日志保存到本地，
+在适当的时机上传至服务器，这样开发人员就可以获取日志，分析崩溃原因。并且还可以自定义提示信息，给出用户友好的提示。
